@@ -1,0 +1,48 @@
+import type { BotArchetype, BotArchetypeKey } from "@/types/poker";
+
+export const ARCHETYPES: Record<BotArchetypeKey, BotArchetype> = {
+  rock: {
+    name: "Fernando",
+    emoji: "🧊",
+    style: "tight-passive",
+    exploitTip: "Steal blinds relentlessly. He fights back only with premium value.",
+    vpip: 15,
+    pfr: 12,
+    aggression: 1.2,
+    bluffFreq: 0.05,
+    foldToRaise: 0.7,
+  },
+  maniac: {
+    name: "Max",
+    emoji: "⚡",
+    style: "loose-aggressive",
+    exploitTip: "Trap with strong hands and let his over-bets fund your stack.",
+    vpip: 75,
+    pfr: 55,
+    aggression: 4.5,
+    bluffFreq: 0.6,
+    foldToRaise: 0.15,
+  },
+  shark: {
+    name: "Leonardo",
+    emoji: "🕶️",
+    style: "tight-aggressive",
+    exploitTip: "Mix your sizing and timing so he cannot lock your pattern.",
+    vpip: 26,
+    pfr: 20,
+    aggression: 2.8,
+    bluffFreq: 0.35,
+    foldToRaise: 0.35,
+  },
+  novice: {
+    name: "Alex",
+    emoji: "🎲",
+    style: "loose-passive",
+    exploitTip: "Value-bet thin. Avoid fancy bluffs against random ranges.",
+    vpip: 50,
+    pfr: 15,
+    aggression: 1,
+    bluffFreq: 0.2,
+    foldToRaise: 0.5,
+  },
+};

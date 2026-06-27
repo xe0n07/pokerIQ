@@ -1,0 +1,56 @@
+@import "tailwindcss";
+
+:root {
+  --background: #0a1a0f;
+  --foreground: #f0ede6;
+  --muted: #7a8c7e;
+  --felt: #0d3320;
+  --gold: #c9a84c;
+}
+
+@theme inline {
+  --color-background: var(--background);
+  --color-foreground: var(--foreground);
+  --font-sans: var(--font-inter);
+  --font-serif: var(--font-playfair);
+  --font-mono: var(--font-jetbrains);
+}
+
+body {
+  background: var(--background);
+  color: var(--foreground);
+  font-family: var(--font-inter), system-ui, sans-serif;
+}
+
+h1,
+h2,
+h3 {
+  font-family: var(--font-playfair), Georgia, serif;
+}
+
+.btn-action {
+  border-radius: 0.7rem;
+  border: 1px solid rgba(255, 255, 255, 0.1);
+  padding: 0.6rem 1rem;
+  font-weight: 600;
+  transition: 120ms ease;
+}
+
+.btn-action:disabled {
+  opacity: 0.4;
+}
+
+.btn-danger {
+  background: rgba(225, 29, 72, 0.15);
+  color: #fda4af;
+}
+
+.btn-light {
+  background: #f5f0e8;
+  color: #111827;
+}
+
+.btn-warn {
+  background: rgba(201, 168, 76, 0.18);
+  color: #f3e1aa;
+}
