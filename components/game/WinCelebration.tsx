@@ -1,117 +1,160 @@
 "use client";
 
 import { AnimatePresence, motion } from "framer-motion";
-import { useEffect, useState } from "react";
+import { useEffect, useRef, useState } from "react";
+import { useRouter } from "next/navigation";
 import { useGameStore } from "@/store/game-store";
-
-function playCelebrationSound() {
-  if (typeof window === "undefined") return;
-
-  const AudioCtxCtor =
-    window.AudioContext ||
-    (window as typeof window & { webkitAudioContext?: typeof AudioContext }).webkitAudioContext;
-
-  if (!AudioCtxCtor) return;
-
-  const audioCtx = new AudioCtxCtor();
-  const master = audioCtx.createGain();
-  master.gain.value = 0.05;
-  master.connect(audioCtx.destination);
-
-  const note = (frequency: number, start: number, duration: number) => {
-    const osc = audioCtx.createOscillator();
-    const gainNode = audioCtx.createGain();
-    osc.type = "triangle";
-    osc.frequency.setValueAtTime(frequency, start);
-    gainNode.gain.setValueAtTime(0.001, start);
-    gainNode.gain.exponentialRampToValueAtTime(0.08, start + 0.01);
-    gainNode.gain.exponentialRampToValueAtTime(0.001, start + duration);
-    osc.connect(gainNode).connect(master);
-    osc.start(start);
-    osc.stop(start + duration);
-  };
-
-  const now = audioCtx.currentTime;
-  note(523.25, now, 0.14);
-  note(659.25, now + 0.12, 0.14);
-  note(783.99, now + 0.24, 0.2);
-
-  void audioCtx.resume();
-  window.setTimeout(() => {
-    void audioCtx.close();
-  }, 700);
-}
+import { CasinoSfx } from "@/lib/audio/casino-sfx";
 
 export function WinCelebration() {
-  const pendingWin = useGameStore((state) => state.pendingWin);
-  const clearPendingWin = useGameStore((state) => state.clearPendingWin);
+  const phase = useGameStore((s) => s.phase);
+  const lastWinners = useGameStore((s) => s.lastWinners);
+  const pendingWin = useGameStore((s) => s.pendingWin);
+  const clearPendingWin = useGameStore((s) => s.clearPendingWin);
+  const startHand = useGameStore((s) => s.startHand);
+  const router = useRouter();
+
+  const prevPhase = useRef<string | null>(null);
   const [visible, setVisible] = useState(false);
+  const [outcome, setOutcome] = useState<"win" | "lose" | null>(null);
+  const [buttonsDisabled, setButtonsDisabled] = useState(true);
+
+  // timers
+  const showTimer = useRef<number | null>(null);
+  const enableTimer = useRef<number | null>(null);
 
   useEffect(() => {
-    if (!pendingWin) {
-      setVisible(false);
-      return;
+    // Clear timers on unmount or next run
+    return () => {
+      if (showTimer.current !== null) {
+        window.clearTimeout(showTimer.current);
+        showTimer.current = null;
+      }
+      if (enableTimer.current !== null) {
+        window.clearTimeout(enableTimer.current);
+        enableTimer.current = null;
+      }
+    };
+  }, []);
+
+  useEffect(() => {
+    if (phase === "HAND_COMPLETE" && prevPhase.current !== "HAND_COMPLETE") {
+      const heroWon = Array.isArray(lastWinners) && lastWinners.includes("hero");
+      setOutcome(heroWon ? "win" : "lose");
+      setButtonsDisabled(true);
+
+      // clear any previous timers
+      if (showTimer.current !== null) {
+        window.clearTimeout(showTimer.current);
+        showTimer.current = null;
+      }
+      if (enableTimer.current !== null) {
+        window.clearTimeout(enableTimer.current);
+        enableTimer.current = null;
+      }
+
+      if (heroWon) {
+        // show immediately for wins
+        setVisible(true);
+        CasinoSfx.playWin();
+        // enable buttons after 10s (existing behaviour)
+        enableTimer.current = window.setTimeout(() => {
+          setButtonsDisabled(false);
+        }, 10000);
+      } else {
+        // DELAY defeat modal by 7 seconds
+        showTimer.current = window.setTimeout(() => {
+          setVisible(true);
+          CasinoSfx.playLose();
+          // after visible, enable buttons after 5s (keeps previous UX)
+          enableTimer.current = window.setTimeout(() => {
+            setButtonsDisabled(false);
+          }, 5000);
+        }, 7000);
+      }
     }
 
-    setVisible(true);
-    playCelebrationSound();
+    prevPhase.current = phase;
+  }, [phase, lastWinners]);
 
-    const timer = window.setTimeout(() => {
-      setVisible(false);
-      clearPendingWin();
-    }, 1800);
+  if (!visible || !outcome) return null;
 
-    return () => window.clearTimeout(timer);
-  }, [pendingWin, clearPendingWin]);
+  const winAmount = pendingWin?.amount ? `+$${pendingWin.amount.toLocaleString()}` : "You won the pot";
+  const loseMessage = "Mission failed. Learn the read and return stronger.";
 
-  if (!pendingWin || !visible) return null;
+  const playAgain = () => {
+    clearPendingWin();
+    startHand();
+    setVisible(false);
+  };
 
-  const confettiPieces = Array.from({ length: 16 }, (_, index) => ({
-    left: `${(index * 7) % 100}%`,
-    delay: index * 0.02,
-    color: index % 2 === 0 ? "bg-amber-300" : "bg-emerald-300",
-  }));
+  const goToStore = () => {
+    router.push("/shop/checkout?amount=10000");
+  };
+
+  const exitToLobby = () => {
+    clearPendingWin();
+    router.push("/");
+  };
 
   return (
     <AnimatePresence>
       <motion.div
-        initial={{ opacity: 0, scale: 0.9, y: 20 }}
-        animate={{ opacity: 1, scale: 1, y: 0 }}
-        exit={{ opacity: 0, scale: 0.9, y: -10 }}
-        transition={{ duration: 0.2 }}
-        className="fixed inset-0 z-[70] flex items-center justify-center bg-black/45 px-4"
+        initial={{ opacity: 0 }}
+        animate={{ opacity: 1 }}
+        exit={{ opacity: 0 }}
+        transition={{ duration: 0.18 }}
+        className="fixed inset-0 z-[70] flex items-center justify-center bg-black/55 px-4"
       >
-        <div className="relative overflow-hidden rounded-[28px] border border-amber-300/40 bg-[#0b1b11]/95 px-8 py-8 text-center shadow-[0_0_80px_rgba(245,158,11,0.35)]">
-          {confettiPieces.map((piece, index) => (
-            <motion.span
-              key={`${piece.left}-${index}`}
-              initial={{ y: -30, opacity: 0, rotate: 0 }}
-              animate={{ y: [0, 110, 140], opacity: [0, 1, 0], rotate: 360 }}
-              transition={{ duration: 1.2, delay: piece.delay, ease: "easeOut" }}
-              className={`absolute top-3 h-3 w-3 ${piece.color}`}
-              style={{ left: piece.left }}
-            />
-          ))}
+        <motion.div
+          initial={{ y: 16, scale: 0.98, opacity: 0 }}
+          animate={{ y: 0, scale: 1, opacity: 1 }}
+          exit={{ y: 8, opacity: 0 }}
+          transition={{ duration: 0.2 }}
+          className="relative w-full max-w-2xl overflow-hidden rounded-2xl border border-white/10 bg-[#08140f]/95 p-6 shadow-2xl"
+        >
+          <div className="flex items-center justify-between gap-4">
+            <div>
+              <div className="text-xs uppercase tracking-wider text-amber-200">{outcome === "win" ? "Victory" : "Defeat"}</div>
+              <h3 className="mt-2 text-2xl font-semibold">{outcome === "win" ? "Mission Complete" : "Hand Lost"}</h3>
+            </div>
 
-          <p className="text-[12px] font-semibold uppercase tracking-[0.4em] text-amber-300">
-            Hand Complete
-          </p>
-          <h2 className="mt-2 text-5xl font-black uppercase tracking-[0.25em] text-[#FDE68A]">
-            Win
-          </h2>
-          <p className="mt-4 text-3xl font-semibold text-emerald-300">
-            +${pendingWin.amount.toLocaleString()}
-          </p>
-          <p className="mt-2 text-sm text-[#B8C7BB]">
-            +{pendingWin.xpEarned} XP
-            {pendingWin.bonusXp > 0 ? ` • +${pendingWin.bonusXp} bonus XP` : ""}
-          </p>
-          {pendingWin.isPremiumBoost ? (
-            <p className="mt-2 text-xs uppercase tracking-[0.3em] text-amber-200">
-              VIP boost active
-            </p>
-          ) : null}
-        </div>
+            <div className="text-right">
+              <div className="text-sm font-mono text-amber-300">{outcome === "win" ? winAmount : "-"}</div>
+              <div className="mt-1 text-xs text-[#B8C7BB]">{outcome === "win" ? `+${pendingWin?.xpEarned ?? 0} XP` : loseMessage}</div>
+            </div>
+          </div>
+
+          <div className="mt-6 flex flex-wrap items-center gap-3">
+            <button
+              onClick={playAgain}
+              disabled={buttonsDisabled}
+              className="win-cta"
+            >
+              Play Again
+            </button>
+
+            <button
+              onClick={goToStore}
+              disabled={buttonsDisabled}
+              className="win-btn-secondary"
+            >
+              Buy 10k Chips
+            </button>
+
+            <button
+              onClick={exitToLobby}
+              disabled={buttonsDisabled}
+              className="win-btn-secondary"
+            >
+              Exit to Lobby
+            </button>
+          </div>
+
+          <div className="mt-4 text-xs text-[#9fb29a]">
+            Note: chips are virtual and for in-game progression only. No real-money gambling is supported.
+          </div>
+        </motion.div>
       </motion.div>
     </AnimatePresence>
   );

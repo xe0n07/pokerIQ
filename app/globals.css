@@ -1,11 +1,27 @@
+@import url('https://fonts.googleapis.com/css2?family=Figtree:ital,wght@0,300..900;1,300..900&family=Roboto+Condensed:ital,wght@0,100..900;1,100..900&display=swap');
+
 @import "tailwindcss";
 
 :root {
-  --background: #0a1a0f;
-  --foreground: #f0ede6;
-  --muted: #7a8c7e;
-  --felt: #0d3320;
-  --gold: #c9a84c;
+  color-scheme: dark;
+  font-family: var(--font-inter), system-ui, sans-serif;
+  --bg: #07120f;
+  --panel-bg: rgba(9, 17, 13, 0.9);
+  --panel-border: rgba(255, 255, 255, 0.12);
+  --text: #f0ede6;
+  --muted: #a3b09a;
+  --accent: #f2c94c;
+  --accent-soft: rgba(242, 201, 76, 0.14);
+  --amber: #C9A84C;
+  --amber-300: #f2c94c;
+  --amber-400: #c9a84c;
+  --emerald: #10b981;
+  --amber-start: #fff3c4;
+  --amber-end:   #c9a84c;
+  --emerald-start: #a6f5d0;
+  --emerald-end:   #10b981;
+  --ghost: rgba(255,255,255,0.03);
+  --btn-dark-text: #07100a;
 }
 
 @theme inline {
@@ -16,41 +32,366 @@
   --font-mono: var(--font-jetbrains);
 }
 
+*,
+*::before,
+*::after {
+  box-sizing: border-box;
+}
+
+html {
+  font-family: inherit;
+  font-size: 16px;
+  scroll-behavior: smooth;
+}
+
 body {
-  background: var(--background);
-  color: var(--foreground);
-  font-family: var(--font-inter), system-ui, sans-serif;
+  margin: 0;
+  min-height: 100vh;
+  background: radial-gradient(circle at top, #0d271a 0%, #07120f 48%, #040907 100%);
+  color: var(--text);
+  line-height: 1.6;
+  text-rendering: optimizeLegibility;
+}
+
+button,
+input,
+textarea,
+select {
+  font: inherit;
 }
 
 h1,
 h2,
+h3,
+h4,
+h5,
+h6 {
+  font-family: var(--font-playfair), system-ui, sans-serif;
+  letter-spacing: -0.03em;
+  margin: 0;
+}
+
+h1 {
+  font-size: clamp(2.6rem, 4vw, 4.5rem);
+  font-weight: 800;
+}
+
+h2 {
+  font-size: clamp(2rem, 3vw, 3rem);
+  font-weight: 700;
+}
+
 h3 {
-  font-family: var(--font-playfair), Georgia, serif;
+  font-size: clamp(1.4rem, 2.2vw, 1.9rem);
+  font-weight: 600;
+}
+
+p,
+li,
+button,
+input,
+label,
+span {
+  font-family: var(--font-inter), system-ui, sans-serif;
+}
+
+button {
+  border: none;
+  background: none;
+  cursor: pointer;
+}
+
+.border-panel {
+  border: 1px solid var(--panel-border);
+}
+
+.card-panel {
+  border-radius: 24px;
+  background: var(--panel-bg);
+  border: 1px solid var(--panel-border);
 }
 
 .btn-action {
-  border-radius: 0.7rem;
-  border: 1px solid rgba(255, 255, 255, 0.1);
-  padding: 0.6rem 1rem;
-  font-weight: 600;
-  transition: 120ms ease;
+  border-radius: 999px;
+  padding: 0.6rem 1.05rem;
+  font-weight: 700;
+  letter-spacing: 0.02em;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 0.5rem;
+  border: 1px solid rgba(255,255,255,0.06);
+  transition: transform .12s ease, filter .12s ease, opacity .12s ease;
+  border: 1px solid rgba(255, 255, 255, 0.08);
+}
+
+.btn-action:hover:not(:disabled) {
+  transform: translateY(-1px);
 }
 
 .btn-action:disabled {
-  opacity: 0.4;
-}
-
-.btn-danger {
-  background: rgba(225, 29, 72, 0.15);
-  color: #fda4af;
+  opacity: 0.45;
+  cursor: not-allowed;
 }
 
 .btn-light {
-  background: #f5f0e8;
-  color: #111827;
+  background: rgba(255,255,255,0.06);
+  color: var(--text);
 }
 
 .btn-warn {
-  background: rgba(201, 168, 76, 0.18);
-  color: #f3e1aa;
+  background: rgba(201,168,76,0.14);
+  color: #0b1008;
 }
+
+.btn-danger {
+  background: rgba(224,86,86,0.12);
+  color: #fff;
+}
+
+.text-muted {
+  color: var(--muted);
+}
+
+.text-accent {
+  color: var(--accent);
+}
+
+/* variants */
+.btn-light { background: rgba(255,255,255,0.06); color: var(--text); }
+.btn-warn { background: rgba(201,168,76,0.14); color: #0b1008; }
+.btn-danger { background: rgba(224,86,86,0.12); color: #fff; }
+
+/* simple utility classes used by components (tailwind fallbacks) */
+.bg-amber-400 { background-color: var(--amber-400) !important; color: #000 !important; }
+.text-amber-300 { color: var(--amber-300) !important; }
+.border-amber-300 { border-color: rgba(201,168,76,0.36) !important; }
+.bg-emerald-500-10 { background-color: rgba(16,185,129,0.10) !important; }
+
+/* keep buttons legible on dark backgrounds */
+button, .btn-action, input[type="button"], input[type="submit"] {
+  font-family: inherit;
+  color: inherit;
+}
+
+/* accessibility: strong focus outlines */
+button:focus, .btn-action:focus, a:focus {
+  outline: 3px solid rgba(242,201,76,0.14);
+  outline-offset: 3px;
+}
+
+/* small UI polish fixes */
+.rounded-2xl { border-radius: 16px; }
+.rounded-xl { border-radius: 12px; }
+
+/* restore subtle shadows for visibility */
+.shadow-xl { box-shadow: 0 10px 30px rgba(0,0,0,0.5); }
+
+/* Base */
+.btn-action{
+  display:inline-flex;
+  align-items:center;
+  justify-content:center;
+  gap:.5rem;
+  padding:.56rem .9rem;
+  border-radius:10px;
+  font-weight:700;
+  letter-spacing:.01em;
+  border:1px solid rgba(255,255,255,0.06);
+  transition:transform .14s cubic-bezier(.2,.9,.3,1), box-shadow .12s ease, filter .12s ease, opacity .12s ease;
+  cursor:pointer;
+  user-select:none;
+  -webkit-tap-highlight-color: transparent;
+}
+
+/* Variants */
+.btn-emerald{
+  background: linear-gradient(180deg,var(--emerald-start),var(--emerald-end));
+  color: var(--btn-dark-text);
+  box-shadow: 0 10px 30px rgba(16,185,129,0.12);
+}
+.btn-warn{
+  background: linear-gradient(92deg,var(--amber-start),var(--amber-end));
+  color: var(--btn-dark-text);
+  box-shadow: 0 12px 36px rgba(201,168,76,0.14);
+}
+.btn-ghost{
+  background: var(--ghost);
+  color: var(--text);
+}
+
+/* animated pop on hover */
+.btn-action:hover{ transform: translateY(-3px) scale(1.02); filter:brightness(1.03); }
+.btn-action:active{ transform: translateY(0); }
+
+/* highlight pulse for available premium boost */
+@keyframes pulse-soft {
+  0% { box-shadow: 0 6px 20px rgba(201,168,76,0.08); transform: translateY(0); }
+  50% { box-shadow: 0 18px 48px rgba(201,168,76,0.14); transform: translateY(-2px); }
+  100% { box-shadow: 0 6px 20px rgba(201,168,76,0.08); transform: translateY(0); }
+}
+.btn-pop { animation: pulse-soft 2.6s ease-in-out infinite; }
+
+/* Deal button (prominent) */
+.deal-button{
+  display:block;
+  width:100%;
+  max-width:440px;
+  margin:0 auto;
+  padding:.95rem 1.25rem;
+  border-radius:20px;
+  background: linear-gradient(92deg,var(--amber-start),var(--amber-end) 70%);
+  color: var(--btn-dark-text);
+  font-size:1.05rem;
+  font-weight:800;
+  box-shadow: 0 18px 50px rgba(242,201,76,0.18);
+  transition: transform .14s cubic-bezier(.2,.9,.3,1), box-shadow .12s ease;
+}
+.deal-button:hover{ transform: translateY(-4px) scale(1.02); }
+.deal-button:active{ transform: translateY(0); }
+
+/* Disabled */
+.btn-action:disabled, .deal-button:disabled { opacity: 0.5; cursor: not-allowed; transform:none; animation:none; }
+
+/* VIP panel button enhancements (scoped) */
+.vip-panel .btn-action {
+  padding: 0.55rem 0.9rem;
+  border-radius: 10px;
+  font-weight: 700;
+  transition: transform .12s ease, box-shadow .14s ease, filter .12s ease;
+}
+
+/* Emerald (Claim Daily) — punchy, elegant */
+.vip-panel .btn-emerald {
+  background: linear-gradient(180deg, rgba(166,245,208,0.98) 0%, #10b981 100%);
+  color: #07210a;
+  border: 1px solid rgba(10,60,40,0.12);
+  box-shadow: 0 10px 28px rgba(16,185,129,0.12), inset 0 1px 0 rgba(255,255,255,0.04);
+}
+.vip-panel .btn-emerald:hover:not(:disabled) {
+  transform: translateY(-3px) scale(1.02);
+  box-shadow: 0 18px 48px rgba(16,185,129,0.18);
+}
+
+/* Amber (Boost) when enabled */
+.vip-panel .btn-warn {
+  background: linear-gradient(92deg,#fff0b8 0%, #f2c94c 60%, #c9a84c 100%);
+  color: #08100a;
+  border: 1px solid rgba(0,0,0,0.06);
+  box-shadow: 0 12px 36px rgba(201,168,76,0.12);
+}
+.vip-panel .btn-warn.btn-pop {
+  animation: pulse-soft 2.6s ease-in-out infinite;
+}
+
+/* Ghost style when disabled — keeps shape but clearly inactive */
+.vip-panel .btn-ghost {
+  background: linear-gradient(180deg, rgba(255,255,255,0.02), rgba(255,255,255,0.01));
+  color: rgba(240,237,230,0.85);
+  border: 1px solid rgba(255,255,255,0.03);
+  filter: grayscale(15%);
+}
+
+/* disabled appearance (applies to any button inside vip-panel) */
+.vip-panel .btn-action:disabled {
+  opacity: 0.6;
+  transform: none;
+  cursor: not-allowed;
+  filter: grayscale(34%) brightness(0.9);
+  box-shadow: none;
+}
+
+/* small responsive spacing fix */
+@media (max-width: 640px) {
+  .vip-panel .btn-action { flex: 1 1 auto; width: 100%; }
+  .vip-panel .mt-3 .flex { flex-direction: column; gap: 0.6rem; }
+}
+
+/* ...existing code... */
+
+.win-cta {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 0.6rem;
+  width: 100%;
+  max-width: 420px;
+  padding: 0.9rem 1.25rem;
+  border-radius: 14px;
+  background: linear-gradient(92deg, #fff3b8 0%, #ffd86b 45%, #c9a84c 100%);
+  color: #08100a;
+  font-weight: 800;
+  font-size: 1.05rem;
+  box-shadow: 0 20px 60px rgba(201,168,76,0.18), inset 0 1px 0 rgba(255,255,255,0.06);
+  border: 1px solid rgba(0,0,0,0.08);
+  opacity: 1 !important;
+  transition: transform .16s cubic-bezier(.2,.9,.3,1), box-shadow .16s ease, filter .12s ease;
+  position: relative;
+  overflow: hidden;
+}
+
+.win-cta::after {
+  content: "";
+  position: absolute;
+  left: -40%;
+  top: -40%;
+  width: 40%;
+  height: 180%;
+  background: linear-gradient(120deg, rgba(255,255,255,0.12), rgba(255,255,255,0.02));
+  transform: rotate(25deg) translateX(0);
+  transition: transform .9s ease;
+  pointer-events: none;
+  opacity: 0.6;
+}
+
+.win-cta:hover:not(:disabled) {
+  transform: translateY(-4px) scale(1.02);
+  box-shadow: 0 28px 80px rgba(201,168,76,0.22), inset 0 2px 0 rgba(255,255,255,0.06);
+}
+.win-cta:hover::after { transform: translateX(200%) rotate(25deg); }
+
+.win-btn-secondary {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 0.5rem;
+  padding: 0.72rem 1.05rem;
+  border-radius: 12px;
+  background: linear-gradient(180deg, rgba(255,255,255,0.03), rgba(255,255,255,0.01));
+  color: rgba(255,255,255,0.95);
+  font-weight: 700;
+  border: 1px solid rgba(255,255,255,0.06);
+  box-shadow: 0 8px 24px rgba(0,0,0,0.45);
+  opacity: 1 !important;
+  transition: transform .12s ease, filter .12s ease, background .12s ease, box-shadow .12s ease;
+  position: relative;
+  overflow: hidden;
+}
+
+.win-btn-secondary:hover:not(:disabled) {
+  transform: translateY(-2px);
+  background: linear-gradient(180deg, rgba(255,255,255,0.06), rgba(255,255,255,0.02));
+  box-shadow: 0 12px 30px rgba(0,0,0,0.5);
+  filter: brightness(1.05);
+}
+
+.win-btn-secondary::before {
+  content: "";
+  position: absolute;
+  inset: 0;
+  background: linear-gradient(90deg, rgba(255,255,255,0.02), rgba(255,255,255,0.00));
+  opacity: 0;
+  transition: opacity .18s ease;
+  pointer-events: none;
+}
+.win-btn-secondary:hover::before { opacity: 1; }
+
+/* Disabled state for both */
+.win-cta:disabled, .win-btn-secondary:disabled {
+  opacity: 0.72 !important;
+  cursor: not-allowed;
+  transform: none !important;
+  box-shadow: none !important;
+}
+
+/* ...existing code... */

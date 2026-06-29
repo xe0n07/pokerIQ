@@ -1,8 +1,11 @@
+// filepath: d:\pokerIQ\poker-web\hooks\useAuth.ts
 "use client";
 
 import { useEffect, useMemo, useState } from "react";
 import type { User } from "firebase/auth";
 import { signInWithGoogle, signOutUser, subscribeAuth } from "@/lib/firebase/auth";
+import { upsertProfile } from "@/lib/firebase/firestore";
+import type { PlayerProfile } from "@/types/poker";
 
 type AuthState = {
   user: User | null;
@@ -22,6 +25,22 @@ export function useAuth(): AuthState {
     const unsubscribe = subscribeAuth((nextUser) => {
       setUser(nextUser);
       setLoading(false);
+
+      // Persist basic profile server-side (email as unique id if available)
+      if (nextUser && nextUser.email) {
+        const profile: PlayerProfile = {
+          uid: nextUser.email, // use email as unique id per requirement
+          displayName: nextUser.displayName ?? nextUser.email.split("@")[0],
+          email: nextUser.email,
+          photoURL: nextUser.photoURL ?? null,
+          createdAt: new Date().toISOString(),
+          // minimal shape - rest of fields optional in PlayerProfile
+        };
+        // don't await — best-effort upsert
+        void upsertProfile(profile).catch(() => {
+          /* ignore firestore errors in guest mode */
+        });
+      }
     });
     return unsubscribe;
   }, []);
@@ -43,9 +62,7 @@ export function useAuth(): AuthState {
     signingIn,
     authEnabled,
     signIn: async () => {
-      if (!authEnabled || signingIn) {
-        return;
-      }
+      if (!authEnabled || signingIn) return;
       setSigningIn(true);
       try {
         await signInWithGoogle();
@@ -56,9 +73,7 @@ export function useAuth(): AuthState {
       }
     },
     signOut: async () => {
-      if (!authEnabled) {
-        return;
-      }
+      if (!authEnabled) return;
       await signOutUser();
     },
   };

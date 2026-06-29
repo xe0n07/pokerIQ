@@ -26,6 +26,7 @@ export function PokerTable() {
   const heroCallOrCheck = useGameStore((state) => state.heroCallOrCheck);
   const heroRaise = useGameStore((state) => state.heroRaise);
   const setRaiseTarget = useGameStore((state) => state.setRaiseTarget);
+  const botAct = useGameStore((state) => state.botAct);
 
   const hero = players[0];
   const toCall = Math.max(0, currentBet - hero.currentBet);
@@ -42,13 +43,28 @@ export function PokerTable() {
 
   const heroHandDescription = describeHand([...hero.cards, ...communityCards]);
 
+  // ensure fold continues the game: fold then schedule bot action (next actor)
+  const handleFold = () => {
+    // call store fold first
+    heroFold();
+    // schedule next bot action asynchronously so folding doesn't block render
+    window.setTimeout(() => {
+      try {
+        const s = useGameStore.getState();
+        s.botAct?.();
+      } catch {
+        /* ignore */
+      }
+    }, 0);
+  };
+
   return (
     <div className="grid gap-4 lg:grid-cols-[minmax(0,1fr)_250px]">
       <div className="rounded-4xl border border-amber-400/40 bg-[#0D3320]/60 p-4 shadow-[inset_0_0_80px_rgba(0,0,0,0.45)]">
         <div className="flex flex-col gap-3 lg:flex-row lg:items-center lg:justify-between">
           <PotDisplay phase={phase} pot={pot} />
           <div className="rounded-full border border-white/10 bg-black/40 px-4 py-2 text-xs text-[#F0EDE6]">
-            {hero.cards.length === 2 ? `Hand Insight: ${heroHandDescription}` : "Waiting for cards"}
+            {hero.cards.length === 2 ? "Hand insight shown on your seat" : "Waiting for cards"}
           </div>
         </div>
         <div className="relative mt-2 h-[500px] overflow-hidden rounded-[150px] border-8 border-amber-900/50 bg-[radial-gradient(circle_at_50%_45%,#14532d_0%,#052e1b_70%,#03180f_100%)]">
@@ -105,6 +121,7 @@ export function PokerTable() {
               isTurn={index === turnIndex}
               revealCards={phase === "HAND_COMPLETE"}
               winner={lastWinners.includes(player.id)}
+              handInsight={player.id === "hero" ? heroHandDescription : undefined}
             />
           ))}
 
@@ -123,7 +140,7 @@ export function PokerTable() {
             maxRaise={maxRaise}
             raiseTarget={raiseTarget}
             canAct={canAct}
-            onFold={heroFold}
+            onFold={handleFold}
             onCallCheck={heroCallOrCheck}
             onRaise={() => heroRaise(raiseTarget)}
             onRaiseChange={setRaiseTarget}

@@ -1,7 +1,6 @@
 "use client";
 
-import { useMemo } from "react";
-import { BIG_BLIND } from "@/lib/constants/poker-rules";
+import React, { useMemo } from "react";
 
 type Props = {
   toCall: number;
@@ -13,6 +12,7 @@ type Props = {
   onCallCheck: () => void;
   onRaise: () => void;
   onRaiseChange: (value: number) => void;
+  onDealNext?: () => void;
 };
 
 export function ActionBar({
@@ -25,50 +25,85 @@ export function ActionBar({
   onCallCheck,
   onRaise,
   onRaiseChange,
+  onDealNext,
 }: Props) {
   const callLabel = toCall > 0 ? `Call $${toCall}` : "Check";
-  const presets = useMemo(
-    () => [
-      { label: "0.5x Pot", value: Math.max(minRaise, Math.floor(toCall * 1.5)) },
-      { label: "1x Pot", value: Math.max(minRaise, toCall * 2 + BIG_BLIND) },
-      { label: "2x Pot", value: Math.max(minRaise, toCall * 3 + BIG_BLIND) },
-      { label: "All-In", value: maxRaise },
-    ],
-    [maxRaise, minRaise, toCall],
-  );
+
+  const presets = useMemo(() => {
+    const half = Math.max(minRaise, Math.min(maxRaise, Math.round(toCall * 0.5)));
+    const oneX = Math.max(minRaise, Math.min(maxRaise, Math.round(toCall || minRaise)));
+    const twoX = Math.max(minRaise, Math.min(maxRaise, Math.round((toCall || minRaise) * 2)));
+    const allIn = maxRaise;
+    return [
+      { label: "0.5x Pot", value: half },
+      { label: "1x Pot", value: oneX },
+      { label: "2x Pot", value: twoX },
+      { label: "All-In", value: allIn },
+    ];
+  }, [toCall, minRaise, maxRaise]);
 
   return (
-    <div className="rounded-2xl border border-white/10 bg-black/35 p-4">
-      <div className="flex flex-wrap items-center gap-2">
-        <button disabled={!canAct} onClick={onFold} className="btn-action btn-danger">
+    <div className="action-bar flex flex-col gap-3">
+      <div className="flex items-center gap-3">
+        <button
+          className="btn-action btn-ghost"
+          onClick={onFold}
+          disabled={!canAct}
+          title="Fold (F)"
+        >
           Fold (F)
         </button>
-        <button disabled={!canAct} onClick={onCallCheck} className="btn-action btn-light">
-          {callLabel} (C)
-        </button>
-        <button disabled={!canAct} onClick={onRaise} className="btn-action btn-warn">
-          Raise to ${raiseTarget} (R)
-        </button>
-      </div>
-      <div className="mt-3">
-        <input
-          type="range"
-          min={Math.min(minRaise, maxRaise)}
-          max={Math.max(minRaise, maxRaise)}
-          value={Math.max(Math.min(raiseTarget, maxRaise), minRaise)}
-          onChange={(event) => onRaiseChange(Number(event.target.value))}
+
+        <button
+          className="btn-action btn-light"
+          onClick={onCallCheck}
           disabled={!canAct}
-          className="w-full accent-amber-400"
-        />
-        <div className="mt-2 flex flex-wrap gap-2">
-          {presets.map((preset) => (
+          title="Call / Check (C)"
+        >
+          {callLabel}
+        </button>
+
+        <div className="flex items-center gap-2">
+          <button
+            className="btn-action btn-warn"
+            onClick={onRaise}
+            disabled={!canAct || raiseTarget < minRaise}
+            title="Raise (R)"
+          >
+            Raise to ${raiseTarget} (R)
+          </button>
+
+          {onDealNext ? (
             <button
-              key={preset.label}
-              disabled={!canAct}
-              onClick={() => onRaiseChange(Math.min(maxRaise, Math.max(minRaise, preset.value)))}
-              className="rounded-md border border-white/10 px-2 py-1 text-xs text-white/80 hover:bg-white/10 disabled:opacity-30"
+              className="btn-action deal-button ml-2"
+              onClick={onDealNext}
+              title="Deal Next Hand"
             >
-              {preset.label}
+              Deal Next Hand
+            </button>
+          ) : null}
+        </div>
+      </div>
+
+      <div className="flex items-center gap-3">
+        <input
+          aria-label="raise target"
+          className="accent-amber-400 w-full"
+          type="range"
+          min={minRaise}
+          max={maxRaise}
+          value={raiseTarget}
+          onChange={(e) => onRaiseChange(Number(e.target.value))}
+        />
+
+        <div className="flex gap-2">
+          {presets.map((p) => (
+            <button
+              key={p.label}
+              className="preset-btn"
+              onClick={() => onRaiseChange(p.value)}
+            >
+              {p.label}
             </button>
           ))}
         </div>
