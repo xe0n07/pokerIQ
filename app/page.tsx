@@ -3,6 +3,7 @@ import { ArchetypeShowcase } from "@/components/landing/ArchetypeShowcase";
 import { Hero } from "@/components/landing/Hero";
 import { HowToPlay } from "@/components/landing/HowToPlay";
 import { LeaderboardPreview } from "@/components/landing/LeaderboardPreview";
+import logoPng from "./logo.png";
 
 const ladderMilestones = [
   { chips: "$5,000", title: "Rookie", desc: "Starting stack", icon: "🐟", unlocked: true },
@@ -21,7 +22,7 @@ export default function Home() {
         <header className="flex items-center justify-between rounded-xl border border-white/[0.08] bg-[#070f0a]/90 px-5 py-3 backdrop-blur-md">
           <div className="flex items-center gap-2">
             <div className="flex h-7 w-7 items-center justify-center rounded-lg bg-amber-400/15 border border-amber-400/20">
-              <img src="./app/logo.png" alt="P" />
+              <img src={logoPng.src} alt="P" width={20} height={20} />
             </div>
             <span
               className="font-mono text-sm tracking-[0.18em] text-amber-300 font-bold"
