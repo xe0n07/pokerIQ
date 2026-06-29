@@ -7,6 +7,7 @@ import { PlayerSeat } from "@/components/table/PlayerSeat";
 import { PotDisplay } from "@/components/table/PotDisplay";
 import { ReadPanel } from "@/components/table/ReadPanel";
 import { BIG_BLIND } from "@/lib/constants/poker-rules";
+import { describeHand } from "@/lib/game-engine/hand-analyzer";
 import { useGameStore } from "@/store/game-store";
 
 // Dealer avatar — place dealer.png inside /public/images/
@@ -39,10 +40,17 @@ export function PokerTable() {
     !hero.folded &&
     !hero.isAllIn;
 
+  const heroHandDescription = describeHand([...hero.cards, ...communityCards]);
+
   return (
     <div className="grid gap-4 lg:grid-cols-[minmax(0,1fr)_250px]">
       <div className="rounded-4xl border border-amber-400/40 bg-[#0D3320]/60 p-4 shadow-[inset_0_0_80px_rgba(0,0,0,0.45)]">
-        <PotDisplay phase={phase} pot={pot} />
+        <div className="flex flex-col gap-3 lg:flex-row lg:items-center lg:justify-between">
+          <PotDisplay phase={phase} pot={pot} />
+          <div className="rounded-full border border-white/10 bg-black/40 px-4 py-2 text-xs text-[#F0EDE6]">
+            {hero.cards.length === 2 ? `Hand Insight: ${heroHandDescription}` : "Waiting for cards"}
+          </div>
+        </div>
         <div className="relative mt-2 h-[500px] overflow-hidden rounded-[150px] border-8 border-amber-900/50 bg-[radial-gradient(circle_at_50%_45%,#14532d_0%,#052e1b_70%,#03180f_100%)]">
           {/* Felt texture overlay */}
           <motion.div
@@ -57,7 +65,6 @@ export function PokerTable() {
 
           {/* ── Dealer avatar — top-center of the table ── */}
           <div className="absolute left-1/2 top-4 -translate-x-1/2 flex flex-col items-center gap-1 z-10">
-            {/* Avatar circle — matches the ring style used by PlayerSeat */}
             <div
               className="
                 relative h-32 w-32
@@ -75,8 +82,6 @@ export function PokerTable() {
                 draggable={false}
               />
             </div>
-
-            {/* Name badge — matches PlayerSeat label style */}
             <span
               className="
                 rounded-full

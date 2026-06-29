@@ -10,6 +10,7 @@ type BotDecisionInput = {
   holeStrength: number;
   beginnerLuckWeakening: boolean;
   minRaiseTo: number;
+  difficultyBias?: number;
 };
 
 export type BotDecision = {
@@ -30,15 +31,18 @@ export function estimatePreflopStrength(values: number[]) {
 
 export function decideBotAction(input: BotDecisionInput): BotDecision {
   const archetype = ARCHETYPES[input.archetype];
-  const noise = (Math.random() - 0.5) * 0.2;
+  const difficultyBias = input.difficultyBias ?? 0;
+  const noise = (Math.random() - 0.5) * 0.16;
   const effectiveStrength = clamped(
-    input.holeStrength + noise - (input.beginnerLuckWeakening ? 0.2 : 0),
+    input.holeStrength + noise + difficultyBias * 0.4 - (input.beginnerLuckWeakening ? 0.16 : 0),
   );
   const callPressure = input.toCall / Math.max(input.chips, 1);
 
-  const foldThreshold = clamped(0.2 + (1 - archetype.vpip / 100) * 0.5 + callPressure * 0.4);
+  const foldThreshold = clamped(
+    0.16 + (1 - archetype.vpip / 100) * 0.18 + callPressure * 0.16 - difficultyBias * 0.18,
+  );
   const raiseThreshold = clamped(
-    0.62 - archetype.pfr / 240 - archetype.aggression / 14 + callPressure * 0.15,
+    0.56 - archetype.pfr / 220 - archetype.aggression / 15 + callPressure * 0.1 + difficultyBias * 0.08,
   );
 
   if (input.toCall > 0 && effectiveStrength < foldThreshold) {
@@ -46,13 +50,19 @@ export function decideBotAction(input: BotDecisionInput): BotDecision {
   }
 
   const canRaise = input.chips > input.toCall + 1;
+  const bluffChance =
+    Math.random() < Math.min(0.7, archetype.bluffFreq + difficultyBias * 0.22);
+
   if (
     canRaise &&
     (effectiveStrength > raiseThreshold ||
-      (effectiveStrength < 0.35 && Math.random() < archetype.bluffFreq * 0.4))
+      (effectiveStrength > 0.38 && bluffChance))
   ) {
     const multiplier = 2 + Math.floor(Math.random() * 2);
-    const raiseTarget = Math.min(input.minRaiseTo + multiplier * input.highestBet, input.currentBet + input.chips);
+    const raiseTarget = Math.min(
+      input.minRaiseTo + multiplier * input.highestBet,
+      input.currentBet + input.chips,
+    );
     return { action: "raise", raiseTo: Math.max(input.minRaiseTo, raiseTarget) };
   }
 
@@ -60,5 +70,9 @@ export function decideBotAction(input: BotDecisionInput): BotDecision {
     return { action: "check" };
   }
 
-  return { action: "call" };
+  if (effectiveStrength > foldThreshold - 0.08 || (effectiveStrength > 0.35 && Math.random() < 0.7)) {
+    return { action: "call" };
+  }
+
+  return { action: "fold" };
 }
