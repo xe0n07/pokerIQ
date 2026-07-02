@@ -149,7 +149,8 @@ export type PlayerProfile = {
   uid: string;
   displayName: string;
   email?: string;
-  photoURL?: string;
+  photoURL?: string | null;
+  createdAt?: string;
   chipStack: number;
   totalXP: number;
   tier: string;

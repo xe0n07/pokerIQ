@@ -5,6 +5,8 @@ import { useEffect, useMemo, useState } from "react";
 import type { User } from "firebase/auth";
 import { signInWithGoogle, signOutUser, subscribeAuth } from "@/lib/firebase/auth";
 import { upsertProfile } from "@/lib/firebase/firestore";
+import { STARTING_STACK } from "@/lib/constants/poker-rules";
+import { getChipTitleByStack, getTierByXP } from "@/lib/constants/titles";
 import type { PlayerProfile } from "@/types/poker";
 
 type AuthState = {
@@ -32,9 +34,18 @@ export function useAuth(): AuthState {
           uid: nextUser.email, // use email as unique id per requirement
           displayName: nextUser.displayName ?? nextUser.email.split("@")[0],
           email: nextUser.email,
-          photoURL: nextUser.photoURL ?? null,
+          photoURL: nextUser.photoURL ?? undefined,
           createdAt: new Date().toISOString(),
-          // minimal shape - rest of fields optional in PlayerProfile
+          chipStack: STARTING_STACK,
+          totalXP: 0,
+          tier: getTierByXP(0).name,
+          chipTitle: getChipTitleByStack(STARTING_STACK).title,
+          handsPlayed: 0,
+          handsWon: 0,
+          totalWon: 0,
+          totalLost: 0,
+          biggestPot: 0,
+          winRate: 0,
         };
         // don't await — best-effort upsert
         void upsertProfile(profile).catch(() => {

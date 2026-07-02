@@ -414,22 +414,19 @@ function executeAction(
     const heroXP = state.heroXP + handXP;
     const heroTier = getTierByXP(heroXP).name;
     const heroChipTitle = getChipTitleByStack(players[0].chips).title;
-    const heroEval = evaluations.hero;
 
     const handResult: HandHistoryEntry = {
       handId: `hand-${state.handNumber}`,
       playedAt: Date.now(),
       heroCards: players[0].cards,
-      communityCards: board,
+      communityCards: state.communityCards,
       result: heroWon ? "won" : players[0].folded ? "folded" : "lost",
       potSize: pot,
       chipDelta: players[0].chips - state.heroStartOfHandChips,
       xpEarned: handXP,
       serverSeedHash: state.serverSeedHash,
       serverSeed: state.serverSeed,
-      summary: `${winners
-        .map((id) => players.find((player) => player.id === id)?.name ?? id)
-        .join(" & ")} won with ${heroEval?.label ?? "best hand"}.`,
+      summary: `${winner.name} won uncontested with ${winner.id === "hero" ? "your hand" : "best hand"}.`,
     };
 
     return {
@@ -629,7 +626,7 @@ function executeAction(
 }
 
 const initialState = {
-  phase: "WAITING",
+  phase: "WAITING" as GamePhase,
   players: createInitialPlayers(),
   deck: [],
   communityCards: [],
