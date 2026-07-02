@@ -47,33 +47,6 @@ export default function GamePage() {
   const claimDailyBonus = useGameStore((s) => s.claimDailyBonus);
   const activatePremiumBoost = useGameStore((s) => s.activatePremiumBoost);
 
-  // keep track of previous hand number so we can reset per-hand flags when a new hand starts
-  const prevHandRef = useRef<number | null>(null);
-
-  // Ensure per-hand flags (folded/isAllIn/currentBet) are cleared when a new hand begins.
-  // This prevents a permanent "folded" state carrying across hands which made the hero unable to play next hand.
-  useEffect(() => {
-    // skip initial mount
-    if (prevHandRef.current === null) {
-      prevHandRef.current = handNumber;
-      return;
-    }
-
-    if (handNumber !== prevHandRef.current) {
-      // new hand started — reset per-player transient flags safely via Zustand setState
-      const s = useGameStore.getState();
-      const updated = s.players.map((p) => ({
-        ...p,
-        folded: false,
-        isAllIn: false,
-        currentBet: 0,
-      }));
-      // apply minimal state update — keep other store logic intact
-      useGameStore.setState({ players: updated });
-      prevHandRef.current = handNumber;
-    }
-  }, [handNumber]);
-
   // AUDIO: register sounds and ensure audio unlocked on first user gesture
   useEffect(() => {
     // Register sound files (idempotent)
